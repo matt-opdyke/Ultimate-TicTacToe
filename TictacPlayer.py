@@ -1,8 +1,11 @@
 import random
+import numpy as np
+from InnerBoard import *
 
 
 class TictacPlayer:
-    board = [[0] * 9] * 9
+    board = []
+    cond = [['_']*3] * 3
     markers = ['X', 'O']
 
     def __init__(self):
@@ -10,6 +13,10 @@ class TictacPlayer:
         """
         self.my_marker = random.choice(self.markers)
         self.op_marker = self.markers[0] if self.my_marker == self.markers[1] else self.markers[1]
+        i = 0
+        while i < 9:
+            self.board.append(InnerBoard(i))
+        self.board = np.array(self.board).reshape(3, 3)
 
     def heuristic(self, state):
         """ A function to calculate the current game heuristic value of the given state
@@ -40,3 +47,6 @@ class TictacPlayer:
         """ Checks to see if the current state is terminal
         """
         pass
+
+    def print_board(self):
+        print(self.board)
