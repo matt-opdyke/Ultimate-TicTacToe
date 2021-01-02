@@ -3,7 +3,7 @@ import numpy as np
 
 class InnerBoard():
     def __init__(self, id_index):
-        self.state = [['_']*3] * 3
+        self.state = np.array(['_']*9).reshape(3,3)
         self.innerID = id_index
 
     def place_marker(self, marker, x, y):
@@ -14,7 +14,7 @@ class InnerBoard():
             marker: The marker to place
             loc: The location that the given marker must be placed
         """
-        self.state = self.state[x][y]
+        self.state[x][y] = marker
 
     def print_inner(self):
         """ Visualization of the InnerBoard object
