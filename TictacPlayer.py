@@ -38,7 +38,7 @@ class TictacPlayer:
         self.board = np.array(self.board)
         self.board = np.reshape(self.board, (3, 3))
 
-        self.condition = [['_']*3] * 3
+        self.condition = InnerBoard(-1)
 
 
     def heuristic(self, state):
@@ -98,10 +98,11 @@ class TictacPlayer:
         """
         pass
 
-    def board_validation(self, state):
-        """ Checks to see if the current state is terminal
+    def board_validation(self):
+        """ Checks to see if the current configuration is terminal
         """
-        pass
+        return self.condition.validate()
+
 
     def print_state(self, state=board):
         state = np.reshape(state, (3, 3))
@@ -110,7 +111,7 @@ class TictacPlayer:
                 inner.print_inner()
 
 
-def main():
+def mainTictacPlayer():
     ttp = TictacPlayer()
     successors = ttp.succ(ttp.board, 4)
     successors[0][1][1].print_inner()
@@ -119,4 +120,4 @@ def main():
     #print(ttp.succ.__doc__)
 
 
-main()
+#mainTictacPlayer()
