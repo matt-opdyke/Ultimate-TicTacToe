@@ -34,18 +34,27 @@ class TictacPlayer:
         while i < 9:
             self.board.append(InnerBoard(i))
             i += 1
-        
+
         self.board = np.array(self.board)
         self.board = np.reshape(self.board, (3, 3))
 
         self.condition = InnerBoard(-1)
 
+    def heuristic(self, state=board):
+        """ Calculates the game heuristic value of the given state.
 
-    def heuristic(self, state):
-        """ A function to calculate the current game heuristic value of the 
-        given state
+        This function will calculate the game heuristic value of the current state that will later be used in determining the ideal move for the AI 
+        player. This calculation will be used within the Minimax algorithm when 
+        assessing states.
+
+        Args:
+            state: The state to which the heuristic is calculated.
+
+        Return:
+            The game heuristic value of the specified state.
         """
-        pass
+        if self.board_validation():
+            return 1000
 
     def succ(self, state, targetID):
         """ A function used to find all successor states of the current state.
@@ -66,16 +75,34 @@ class TictacPlayer:
         """
         successors = []
 
-        # Calculate the row and column of the InnerBoard where the AI must move 
+        # Calculate the row and column of the InnerBoard where the AI must move
         # based on it's targetID
         x = targetID // 3
         y = targetID % 3
 
+        if not self.board[x][y].validate():
+            return self.inner_succ(x, y)
+
+        x, y, index = 0, 0, 0
+        while index < 9:
+            x = index // 3
+            y = index % 3
+            index += 1
+            if self.board[x][y].validate():
+                continue
+            successors += self.inner_succ(x, y)
+
+        return successors
+
+    def inner_succ(self, x, y):
+        """ A helper function for the successor function.
+        """
+        successors = []
         index = 0
-        for i in state[x][y].state:
+        for i in self.board[x][y].state:
             for j in i:
                 if str(j) not in self.markers:
-                    curr = copy.deepcopy(state)
+                    curr = copy.deepcopy(self.board)
                     row = index // 3
                     col = index % 3
                     curr[x][y].place_marker(self.my_marker, row, col)
@@ -103,7 +130,6 @@ class TictacPlayer:
         """
         return self.condition.validate()
 
-
     def print_state(self, state=board):
         state = np.reshape(state, (3, 3))
         for row in state:
@@ -113,11 +139,9 @@ class TictacPlayer:
 
 def mainTictacPlayer():
     ttp = TictacPlayer()
-    successors = ttp.succ(ttp.board, 4)
-    successors[0][1][1].print_inner()
-    print()
-    ttp.print_state(successors[0])
-    #print(ttp.succ.__doc__)
+    ttp.board[0][0].set_state(['X', 'X', 'X', '_', '_', '_', '_', '_', '_'])
+    successors = ttp.succ(ttp.board, 0)
+    print(len(successors))
 
 
-#mainTictacPlayer()
+mainTictacPlayer()

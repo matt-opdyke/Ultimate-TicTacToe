@@ -42,6 +42,20 @@ class InnerBoard():
     def set_state(self, state):
         """ USED FOR TESTING PURPOSES"""
         self.state = state
+    
+    def inner_heuristic(self):
+        """Calculates the heuristic of the InnerBoard.
+
+        This function serves to calculate the heuristic on a smaller scale for 
+        the InnerBoard. This smaller heuristic will be compounded with the 
+        heuristic of the other InnerBoards to calculate the heuristic of the 
+        larger game board.
+
+        Return:
+            The heuristic of this InnerBoard.
+        """
+        #TODO implement heuristic func for InnerBoard
+        pass
 
     def validate(self):
         """ Assesses the current state to see if it is terminal.
@@ -114,4 +128,4 @@ def mainInnerBoard():
 
     print(i1.__doc__)
 
-#mainInnerBoard()
+# mainInnerBoard()
