@@ -54,9 +54,9 @@ class TictacPlayer:
             The game heuristic value of the specified state.
         """
         if self.board_validation():
-            return 1000
+            return float('inf')
 
-    def succ(self, state, targetID):
+    def succ(self, targetID, stateboard):
         """ A function used to find all successor states of the current state.
 
         This function will be used by the Minimax Algorithm to calculate 
@@ -135,13 +135,3 @@ class TictacPlayer:
         for row in state:
             for inner in row:
                 inner.print_inner()
-
-
-def mainTictacPlayer():
-    ttp = TictacPlayer()
-    ttp.board[0][0].set_state(['X', 'X', 'X', '_', '_', '_', '_', '_', '_'])
-    successors = ttp.succ(ttp.board, 0)
-    print(len(successors))
-
-
-mainTictacPlayer()
