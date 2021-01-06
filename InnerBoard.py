@@ -3,7 +3,6 @@ import numpy as np
 
 
 class InnerBoard():
-
     """This class creates the InnerBoard object.
 
     This class implements the InnerBoard object and a few methods for
@@ -19,6 +18,12 @@ class InnerBoard():
     """
 
     def __init__(self, id_index):
+        """Initializes the InnerBoard object.
+
+        Creates the InnerBoard object as a 3x3 numPy array with the specified 
+        ID for the InnerBoard. The default for winner is None as no one has won 
+        an empty InnerBoard.
+        """
         self.state = np.array(['_']*9)
         self.state = np.reshape(self.state, (3, 3))
         self.innerID = id_index
@@ -36,6 +41,14 @@ class InnerBoard():
 
     def print_inner(self, verbose=True):
         """ Visualization of the InnerBoard object
+
+        This method will either print the InnerBoard object to console, or return the state depending on the value of verbose.
+
+        Args:
+            verbose: Determines if the state will be printed or returned.
+
+        Return:
+            The InnerBoard object's state if verbose is set to False.
         """
         if verbose == False:
             return self.state
@@ -100,7 +113,6 @@ class InnerBoard():
                 score += 100
             elif count[my_mark] == 3:
                 score += 1000
-        
 
         # diagonal (TR to BL) condition
         trbl = [self.state[0][2], self.state[1][1], self.state[2][0]]
@@ -114,6 +126,8 @@ class InnerBoard():
             elif count[my_mark] == 3:
                 score += 1000
         
+        return score
+
     def validate(self):
         """ Assesses the current state to see if it is terminal.
 
@@ -126,7 +140,9 @@ class InnerBoard():
             True if the current InnerBoard configuration is a terminal state. 
             There are 8 possible terminal configurations for the AI player. 
             Three horizontal lines, three vertical lines and two diagonal 
-            conditions exist. Additionally, if the InnerBoard is full (meaning all 9 spaces are occupied by a marker) and there is no winning line, then the winner attribute is set to 'T' for tie.
+            conditions exist. Additionally, if the InnerBoard is full (meaning 
+            all 9 spaces are occupied by a marker) and there is no winning 
+            line, then the winner attribute is set to 'T' for tie.
         """
         # vertical condition
         i = 0

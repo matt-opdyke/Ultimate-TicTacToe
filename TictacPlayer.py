@@ -16,13 +16,16 @@ class TictacPlayer:
         op_marker: The AI's opponent's marker represented in the same manner.
         board: The board represented as a 3x3 numpy array of InnerBoard objects.
         condition: The state of the larger board in terms of a smaller game
+        winner: Which player has won the larger board.
     """
     board = []
     markers = ['X', 'O']
 
     def __init__(self):
-        """ Initializes the TictacPlayer object with either 'X' or 'O' randomly 
-        and shapes the board into a 3x3 numpy array of InnerBoard objects.
+        """Initializes the TictacPlayer object.
+
+        Creates the TictacPlayer object with either 'X' or 'O' randomly and 
+        shapes the board into a 3x3 numpy array of InnerBoard objects.
         """
         self.my_marker = random.choice(self.markers)
         if self.my_marker == self.markers[1]:
@@ -42,8 +45,11 @@ class TictacPlayer:
 
         self.winner = None
 
+    def condition_heuristic(self):
+        return self.condition.inner_heuristic(self.my_marker, self.op_marker)
+
     def heuristic(self, state=board):
-        """ Calculates the game heuristic value of the given state.
+        """Calculates the game heuristic value of the given state.
 
         This function will calculate the game heuristic value of the current state that will later be used in determining the ideal move for the AI 
         player. This calculation will be used within the Minimax algorithm when 
@@ -55,16 +61,34 @@ class TictacPlayer:
         Return:
             The game heuristic value of the specified state.
         """
+        score = 0
         if self.board_validation():
             return float('inf')
+        for inner in state:
+            score += inner.inner_heuristic(self.my_marker, self.op_marker)
+        
+        score += self.condition_heuristic() * 2
+
+        return score
 
     def calculate_pos(self, num):
+        """ Calculates the position in a board based on ID.
+
+        A helper function to calculate the indices of a space within a board 
+        (InnerBoard or larger board) to be used when accessing/placing markers.
+
+        Args:
+            num: The given ID to be converted into indices.
+
+        Return:
+            The x and y coordinates of the specified ID.
+        """
         x = num // 3
         y = num % 3
         return x, y
 
     def succ(self, targetID, stateboard):
-        """ A function used to find all successor states of the current state.
+        """A function used to find all successor states of the current state.
 
         This function will be used by the Minimax Algorithm to calculate 
         possible moves and assess them to select the best possible move. 
@@ -100,7 +124,19 @@ class TictacPlayer:
         return successors
 
     def inner_succ(self, x, y):
-        """ A helper function for the successor function.
+        """A helper function for the successor function.
+
+        This function serves to calculate successors of the current state with 
+        the specified InnerBoard.
+
+        Args:
+            x: The row of the target InnerBoard.
+            y: the column of the specified InnerBoard.
+
+        Return:
+            A list of possible successor states within the InnerBoard. Note 
+            that 9 is the maximum amount of successor states that a single 
+            InnerBoard may contain.
         """
         successors = []
         index = 0
@@ -116,26 +152,34 @@ class TictacPlayer:
         return successors
 
     def max_val(self, state):
-        """ The max value function for the Minimax algorithm
+        """The max value function for the Minimax algorithm
         """
         pass
 
     def min_val(self, state):
-        """ The min value function for the Minimax algorithm 
+        """The min value function for the Minimax algorithm 
         """
         pass
 
     def take_turn(self):
-        """ Executes the AI's next calculated move
+        """Executes the AI's next calculated move
         """
         pass
 
     def board_validation(self):
-        """ Checks to see if the current configuration is terminal
+        """Checks to see if the current configuration is terminal
         """
         return self.condition.validate()
 
     def print_state(self, state=board):
+        """Prints the current game state to the console.
+
+        This function visualizes the board state and prints it to the console 
+        for the human player.
+
+        Args:
+            state: specifies which state to print, defaults to current state.
+        """
         state = np.reshape(state, (3, 3))
         for row in state:
             top, mid, bot = [], [], []
@@ -147,6 +191,20 @@ class TictacPlayer:
             print(top, mid, bot, sep='\n')
 
     def prompt_input(self):
+        """Facilitates retrieving the user input.
+
+        This function will take the user input in the form of two integers and 
+        parse it into a two element list. It also assures that the input is 
+        valid. Upon invalid input, prints an error message and prompts for new 
+        input.
+
+        Return:
+            A two element list holding 0) the specified InnerBoard and 1) the 
+            specified space within the given InnerBoard.
+
+        Raises:
+            ValueError: A ValueError was thrown as the input is invalid.
+        """
         move = input("Please enter your move: ")
         try:
             return [int(move[0]), int(move[1])]
@@ -156,6 +214,11 @@ class TictacPlayer:
             self.prompt_input()
 
     def op_move(self):
+        """Allows the human opponent to select their move.
+
+        Facilitates the prompting for user input, parsing the input into 
+        coordinates then placing the correct marker.
+        """
         self.print_state()
         move = self.prompt_input()
         targetInner = move[0]
@@ -164,9 +227,14 @@ class TictacPlayer:
         row, col = self.calculate_pos(targetSpace)
         self.board[x][y].place_marker(self.op_marker, row, col)
         self.print_state()
-    
+
     def start_game(self):
-        player = random.choice([0,1])
+        """The driver method for the class.
+
+        The application will begin by randomly selecting which player goes 
+        first, and alternating turns from then onward.
+        """
+        player = random.choice([0, 1])
         while self.winner == None:
             if player == 0:
                 self.take_turn()
@@ -174,10 +242,23 @@ class TictacPlayer:
                 self.op_move()
 
 
-
 def main():
     ttp = TictacPlayer()
-    ttp.op_move()
+    state1 = np.array([ttp.my_marker,ttp.my_marker,ttp.op_marker,'_','_','_','_','_','_'])
+    state2 = np.array([ttp.my_marker,ttp.my_marker,ttp.my_marker,'_','_','_','_','_','_'])
+    cond = np.array(['_','_','_',ttp.my_marker,'_','_','_','_','_'])
+    cond = np.reshape(cond, (3,3))
+    ttp.condition.set_state(cond) 
+    state1 = np.reshape(state1, (3,3))
+    state2 = np.reshape(state2, (3,3))
+    ttp.board[0][0].set_state(state1)
+    ttp.board[1][0].set_state(state2)
+    ttp.board[1][0].winner = ttp.my_marker
+
+    ttp.print_state()
+
+    print(ttp.heuristic())
+    #ttp.start_game()
 
 
 main()
