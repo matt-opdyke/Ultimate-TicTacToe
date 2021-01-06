@@ -34,9 +34,11 @@ class InnerBoard():
         """
         self.state[x][y] = marker
 
-    def print_inner(self):
+    def print_inner(self, verbose=True):
         """ Visualization of the InnerBoard object
         """
+        if verbose == False:
+            return self.state
         print(self.state)
 
     def set_state(self, state):

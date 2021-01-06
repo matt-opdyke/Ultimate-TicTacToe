@@ -40,6 +40,8 @@ class TictacPlayer:
 
         self.condition = InnerBoard(-1)
 
+        self.winner = None
+
     def heuristic(self, state=board):
         """ Calculates the game heuristic value of the given state.
 
@@ -55,6 +57,11 @@ class TictacPlayer:
         """
         if self.board_validation():
             return float('inf')
+
+    def calculate_pos(self, num):
+        x = num // 3
+        y = num % 3
+        return x, y
 
     def succ(self, targetID, stateboard):
         """ A function used to find all successor states of the current state.
@@ -77,16 +84,14 @@ class TictacPlayer:
 
         # Calculate the row and column of the InnerBoard where the AI must move
         # based on it's targetID
-        x = targetID // 3
-        y = targetID % 3
+        x, y = self.calculate_pos(targetID)
 
         if not self.board[x][y].validate():
             return self.inner_succ(x, y)
 
         x, y, index = 0, 0, 0
         while index < 9:
-            x = index // 3
-            y = index % 3
+            x, y = self.calculate_pos(targetID)
             index += 1
             if self.board[x][y].validate():
                 continue
@@ -120,7 +125,7 @@ class TictacPlayer:
         """
         pass
 
-    def take_turn(self, states):
+    def take_turn(self):
         """ Executes the AI's next calculated move
         """
         pass
@@ -133,5 +138,46 @@ class TictacPlayer:
     def print_state(self, state=board):
         state = np.reshape(state, (3, 3))
         for row in state:
+            top, mid, bot = [], [], []
             for inner in row:
-                inner.print_inner()
+                inner = inner.print_inner(verbose=False)
+                top += list(inner[0])
+                mid += list(inner[1])
+                bot += list(inner[2])
+            print(top, mid, bot, sep='\n')
+
+    def prompt_input(self):
+        move = input("Please enter your move: ")
+        try:
+            return [int(move[0]), int(move[1])]
+        except ValueError:
+            print(
+                "ERROR: invalid usage. Please enter your input as {int}{int}")
+            self.prompt_input()
+
+    def op_move(self):
+        self.print_state()
+        move = self.prompt_input()
+        targetInner = move[0]
+        x, y = self.calculate_pos(targetInner)
+        targetSpace = move[1]
+        row, col = self.calculate_pos(targetSpace)
+        self.board[x][y].place_marker(self.op_marker, row, col)
+        self.print_state()
+    
+    def start_game(self):
+        player = random.choice([0,1])
+        while self.winner == None:
+            if player == 0:
+                self.take_turn()
+            elif player == 1:
+                self.op_move()
+
+
+
+def main():
+    ttp = TictacPlayer()
+    ttp.op_move()
+
+
+main()
