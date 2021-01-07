@@ -48,12 +48,20 @@ class TictacPlayer:
         self.first = False
 
     def condition_heuristic(self):
+        """ Calculates the heuristic of the conditional board.
+
+        This function will calculate the heuristic of the larger board. This is used within the heuristic function and weighted differently than the heuristic of an InnerBoard state.
+
+        Return:
+            The game heuristic value of the condition board.
+        """
         return self.condition.inner_heuristic(self.my_marker, self.op_marker)
 
     def heuristic(self, state=board):
         """Calculates the game heuristic value of the given state.
 
-        This function will calculate the game heuristic value of the current state that will later be used in determining the ideal move for the AI
+        This function will calculate the game heuristic value of the current 
+        state that will later be used in determining the ideal move for the AI
         player. This calculation will be used within the Minimax algorithm when
         assessing states.
 
@@ -157,7 +165,17 @@ class TictacPlayer:
         return successors
 
     def max_val(self, state, targetID, depth):
-        """The max value function for the Minimax algorithm
+        """The max value function for the Minimax algorithm.
+
+        The maximum value function of the Minimax algorithm. This function is used concurrently with the minimum value function to reach the desired depth of the game tree.
+
+        Args:
+            state: The state used in the current iteration of max_val.
+            targetID: where the next player must move.
+            depth: The desired depth of the game tree.
+        
+        Return:
+            The maximum heuristic found within the game tree.
         """
 
         # temp variable to hold heuristic for better runtime
@@ -174,9 +192,18 @@ class TictacPlayer:
         return alpha
 
     def min_val(self, state, targetID, depth):
-        """The min value function for the Minimax algorithm
-        """
+        """The min value function for the Minimax algorithm.
 
+        The minimum value function of the Minimax algorithm. This function is used concurrently with the maximum value function to reach the desired depth of the game tree.
+
+        Args:
+            state: The state used in the current iteration of min_val.
+            targetID: where the next player must move.
+            depth: The desired depth of the game tree.
+        
+        Return:
+            The minimum heuristic found within the game tree.
+        """
         store = self.heuristic(state)
 
         # if the state is terminal or max depth is reached, return the
@@ -187,12 +214,17 @@ class TictacPlayer:
         # initialize beta to infinity
         beta = float('inf')
 
-        # for each successor call max
         for successor in self.succ(targetID, state):
             beta = min(beta, self.max_val(successor[0], successor[1], depth-1))
         return beta
     
     def first_turn(self):
+        """ Helper function for take_turn to randomly select the first turn.
+
+        This function will randomly select a first move for the AI player. 
+        Since there is no need to run the minimax algorithm over every single 
+        space in the board, a random move will suffice.
+        """
         inner = random.choice(range(9))
         space = random.choice(range(9))
         x,y = self.calculate_pos(inner)
@@ -200,12 +232,29 @@ class TictacPlayer:
         self.board[x][y].place_marker(self.my_marker,row, col)
     
     def update(self, new):
+        """ Helper function for take_turn to update the board state.
+
+        This function will update the current board's state to reflect the move selected by the AI player.
+
+        Args:
+            new: The new state that contains the AI player's move.
+        """
         for x in range(3):
             for y in range(3):
                 self.board[x][y].set_state(new[x][y].state)
 
     def take_turn(self, inner, depth):
-        """Executes the AI's next calculated move
+        """Executes the AI's next calculated move.
+
+        In order to take its turn, the AI player will use this function to connect the minimax algorithm and determine which move is the best option based on the heuristic.
+
+        Args:
+            inner: The specified InnerBoard where the AI player must move.
+            depth: The given depth for the game tree calculations.
+        
+        Return:
+            0: The first turn condition.
+            1: Otherwise.
         """
         if self.first == True:
             self.first = False
@@ -234,7 +283,12 @@ class TictacPlayer:
         return 1
 
     def board_validation(self):
-        """Checks to see if the current configuration is terminal
+        """Checks to see if the current configuration is terminal.
+
+        This function checks the state of the condition attribute and validates it. Since condition is represented by an InnerBoard object, the validate function may be utilized.
+
+        Return:
+            True if the board is in a terminal state, otherwise false.
         """
         return self.condition.validate()
 
@@ -292,6 +346,9 @@ class TictacPlayer:
 
         Facilitates the prompting for user input, parsing the input into
         coordinates then placing the correct marker.
+
+        Return:
+            The InnerBoard where the AI player must move next turn.
         """
         self.print_state()
         move = self.prompt_input()
