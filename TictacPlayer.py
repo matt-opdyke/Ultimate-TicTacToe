@@ -230,6 +230,7 @@ class TictacPlayer:
         x,y = self.calculate_pos(inner)
         row, col = self.calculate_pos(space)
         self.board[x][y].place_marker(self.my_marker,row, col)
+        return inner
     
     def update(self, new):
         """ Helper function for take_turn to update the board state.
@@ -268,7 +269,7 @@ class TictacPlayer:
         for state in self.succ(inner, self.board):
 
             if (self.board_validation() == True):
-                best_state = state[0]
+                best_state = state
                 break
 
             current_value = self.min_val(state[0], inner, depth)
@@ -276,11 +277,11 @@ class TictacPlayer:
 
             if current_value > best_heur:
                 best_heur = current_value
-                best_state = state[0]
+                best_state = state
         #self.print_state(best_state)
         #print(type(self.board), type(best_state))
-        self.update(best_state)
-        return 1
+        self.update(best_state[0])
+        return best_state[1]
 
     def board_validation(self):
         """Checks to see if the current configuration is terminal.
@@ -312,7 +313,7 @@ class TictacPlayer:
             print(top, mid, bot, sep='\n')
             print()
 
-    def prompt_input(self):
+    def prompt_input(self, targetInner):
         """Facilitates retrieving the user input.
 
         This function will take the user input in the form of two integers and
@@ -330,18 +331,21 @@ class TictacPlayer:
         move = input("Please enter your move: ")
         try:
             ret = [int(move[0]), int(move[1])]
+            if ret[0] != targetInner and targetInner != -1:
+                print('That is not the correct inner board! Try again.')
+                self.prompt_input(targetInner)
             x,y = self.calculate_pos(ret[0])
             row,col=self.calculate_pos(ret[1])
             if self.board[x][y].state[row][col] != '_':
                 print('That space is already occupied! Try again.')
-                self.prompt_input()
+                self.prompt_input(targetInner)
             return ret
         except ValueError:
             print(
                 "ERROR: invalid usage. Please enter your input as {int}{int}")
-            self.prompt_input()
+            self.prompt_input(targetInner)
 
-    def op_move(self):
+    def op_move(self, targetInner):
         """Allows the human opponent to select their move.
 
         Facilitates the prompting for user input, parsing the input into
@@ -351,11 +355,11 @@ class TictacPlayer:
             The InnerBoard where the AI player must move next turn.
         """
         self.print_state()
-        move = self.prompt_input()
-        targetInner = move[0]
-        x, y = self.calculate_pos(targetInner)
-        targetSpace = move[1]
-        row, col = self.calculate_pos(targetSpace)
+        move = self.prompt_input(targetInner)
+        inner_select = move[0]
+        x, y = self.calculate_pos(inner_select)
+        space_select = move[1]
+        row, col = self.calculate_pos(space_select)
         self.board[x][y].place_marker(self.op_marker, row, col)
         return targetInner
 
@@ -369,15 +373,15 @@ class TictacPlayer:
         player = random.choice([0, 1])
         inner = -1
         if player == 0:
-            self.first_turn()
+            inner = self.first_turn()
             self.first == True
             player = 1
         while self.winner == None:
             if player == 0:
-                self.take_turn(inner, depth)
+                inner = self.take_turn(inner, depth)
                 player = 1
             elif player == 1:
-                inner = self.op_move()
+                inner = self.op_move(inner)
                 player = 0
 
 
