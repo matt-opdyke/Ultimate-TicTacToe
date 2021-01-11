@@ -358,19 +358,20 @@ class TictacPlayer:
             if ret[0] != targetInner and targetInner != -1:
                 print('That is not the correct inner board! Try {}.'.format(
                     targetInner))
-                self.prompt_input(targetInner)
+                return self.prompt_input(targetInner)
             x, y = self.calculate_pos(ret[0])
             row, col = self.calculate_pos(ret[1])
             if self.board[x][y].state[row][col] != '_':
                 print('That space is already occupied with {}! Try again.'.format(
                     self.board[x][y].state[row][col]), ret)
                 self.print_state()
-                self.prompt_input(targetInner)
+                return self.prompt_input(targetInner)
             return ret
         except ValueError:
             print(
                 "ERROR: invalid usage. Please enter your input as (int)(int) not {}".format((move[0], move[1])))
-            self.prompt_input(targetInner)
+            return self.prompt_input(targetInner)
+        
 
     def op_move(self, targetInner):
         """Allows the human opponent to select their move.
