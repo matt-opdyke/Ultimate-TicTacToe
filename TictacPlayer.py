@@ -166,7 +166,7 @@ class TictacPlayer:
                 index += 1
         return successors
 
-    def max_val(self, state, targetID, depth):
+    def max_val(self, state, targetID, beta, depth):
         """The max value function for the Minimax algorithm.
 
         The maximum value function of the Minimax algorithm. This function is 
@@ -192,10 +192,12 @@ class TictacPlayer:
 
         for successor in self.succ(targetID, state):
             alpha = max(alpha, self.min_val(
-                successor[0], successor[1], depth-1))
+                successor[0], successor[1], beta, depth-1))
+            if alpha >= beta:
+                return beta
         return alpha
 
-    def min_val(self, state, targetID, depth):
+    def min_val(self, state, targetID, alpha, depth):
         """The min value function for the Minimax algorithm.
 
         The minimum value function of the Minimax algorithm. This function is 
@@ -221,7 +223,10 @@ class TictacPlayer:
         beta = float('inf')
 
         for successor in self.succ(targetID, state):
-            beta = min(beta, self.max_val(successor[0], successor[1], depth-1))
+            beta = min(beta, self.max_val(
+                successor[0], successor[1], alpha, depth-1))
+            if alpha >= beta:
+                return alpha
         return beta
 
     def first_turn(self):
@@ -230,6 +235,9 @@ class TictacPlayer:
         This function will randomly select a first move for the AI player. 
         Since there is no need to run the minimax algorithm over every single 
         space in the board, a random move will suffice.
+
+        Return:
+            The innerboard index that the human player must move to.
         """
         self.first = False
         inner = random.choice(range(9))
@@ -283,7 +291,7 @@ class TictacPlayer:
                 best_state = state
                 break
 
-            current_value = self.min_val(state[0], inner, depth)
+            current_value = self.min_val(state[0], inner, 0, depth)
 
             if current_value > best_heur:
                 best_heur = current_value
@@ -306,12 +314,14 @@ class TictacPlayer:
         for row in self.board:
             for inner in row:
                 if (inner.winner == None) and inner.validate():
-                    print('Congratulations! {} has won inner board #{}'.format(piece, index))
+                    print('Congratulations! {} has won inner board #{}'.format(
+                        piece, index))
                     x, y = self.calculate_pos(index)
                     self.condition.state[x][y] = piece
                 index += 1
         if self.condition.validate():
             self.winner = piece
+            print("Congratulations to {}! You've won the game!".format(piece))
 
     def print_state(self, state=board):
         """Prints the current game state to the console.
@@ -371,7 +381,6 @@ class TictacPlayer:
             print(
                 "ERROR: invalid usage. Please enter your input as (int)(int) not {}".format((move[0], move[1])))
             return self.prompt_input(targetInner)
-        
 
     def op_move(self, targetInner):
         """Allows the human opponent to select their move.
@@ -397,7 +406,7 @@ class TictacPlayer:
         The application will begin by randomly selecting which player goes
         first, and alternating turns from then onward.
         """
-        depth = 2
+        depth = 3
         player = random.choice([0, 1])
         inner = -1
         if player == 0:
