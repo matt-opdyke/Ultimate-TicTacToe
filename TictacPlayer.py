@@ -50,7 +50,9 @@ class TictacPlayer:
     def condition_heuristic(self):
         """ Calculates the heuristic of the conditional board.
 
-        This function will calculate the heuristic of the larger board. This is used within the heuristic function and weighted differently than the heuristic of an InnerBoard state.
+        This function will calculate the heuristic of the larger board. This is 
+        used within the heuristic function and weighted differently than the 
+        heuristic of an InnerBoard state.
 
         Return:
             The game heuristic value of the condition board.
@@ -72,7 +74,7 @@ class TictacPlayer:
             The game heuristic value of the specified state.
         """
         score = 0
-        if self.board_validation():
+        if self.board_validation(self.my_marker):
             return float('inf')
         for row in state:
             for inner in row:
@@ -167,13 +169,15 @@ class TictacPlayer:
     def max_val(self, state, targetID, depth):
         """The max value function for the Minimax algorithm.
 
-        The maximum value function of the Minimax algorithm. This function is used concurrently with the minimum value function to reach the desired depth of the game tree.
+        The maximum value function of the Minimax algorithm. This function is 
+        used concurrently with the minimum value function to reach the desired 
+        depth of the game tree.
 
         Args:
             state: The state used in the current iteration of max_val.
             targetID: where the next player must move.
             depth: The desired depth of the game tree.
-        
+
         Return:
             The maximum heuristic found within the game tree.
         """
@@ -194,13 +198,15 @@ class TictacPlayer:
     def min_val(self, state, targetID, depth):
         """The min value function for the Minimax algorithm.
 
-        The minimum value function of the Minimax algorithm. This function is used concurrently with the maximum value function to reach the desired depth of the game tree.
+        The minimum value function of the Minimax algorithm. This function is 
+        used concurrently with the maximum value function to reach the desired 
+        depth of the game tree.
 
         Args:
             state: The state used in the current iteration of min_val.
             targetID: where the next player must move.
             depth: The desired depth of the game tree.
-        
+
         Return:
             The minimum heuristic found within the game tree.
         """
@@ -217,7 +223,7 @@ class TictacPlayer:
         for successor in self.succ(targetID, state):
             beta = min(beta, self.max_val(successor[0], successor[1], depth-1))
         return beta
-    
+
     def first_turn(self):
         """ Helper function for take_turn to randomly select the first turn.
 
@@ -225,17 +231,20 @@ class TictacPlayer:
         Since there is no need to run the minimax algorithm over every single 
         space in the board, a random move will suffice.
         """
+        self.first = False
         inner = random.choice(range(9))
         space = random.choice(range(9))
-        x,y = self.calculate_pos(inner)
+        x, y = self.calculate_pos(inner)
         row, col = self.calculate_pos(space)
-        self.board[x][y].place_marker(self.my_marker,row, col)
-        return inner
-    
+        self.board[x][y].place_marker(self.my_marker, row, col)
+        print('I have decided to move to {}{}'.format(inner, space))
+        return space
+
     def update(self, new):
         """ Helper function for take_turn to update the board state.
 
-        This function will update the current board's state to reflect the move selected by the AI player.
+        This function will update the current board's state to reflect the move 
+        selected by the AI player.
 
         Args:
             new: The new state that contains the AI player's move.
@@ -247,12 +256,14 @@ class TictacPlayer:
     def take_turn(self, inner, depth):
         """Executes the AI's next calculated move.
 
-        In order to take its turn, the AI player will use this function to connect the minimax algorithm and determine which move is the best option based on the heuristic.
+        In order to take its turn, the AI player will use this function to 
+        connect the minimax algorithm and determine which move is the best 
+        option based on the heuristic.
 
         Args:
             inner: The specified InnerBoard where the AI player must move.
             depth: The given depth for the game tree calculations.
-        
+
         Return:
             0: The first turn condition.
             1: Otherwise.
@@ -267,31 +278,40 @@ class TictacPlayer:
         best_state = None
 
         for state in self.succ(inner, self.board):
-
-            if (self.board_validation() == True):
+            print('Assessing move...')
+            if self.board_validation(self.my_marker):
                 best_state = state
                 break
 
             current_value = self.min_val(state[0], inner, depth)
-            print('current calculated')
 
             if current_value > best_heur:
                 best_heur = current_value
                 best_state = state
-        #self.print_state(best_state)
-        #print(type(self.board), type(best_state))
         self.update(best_state[0])
+        print('I have decided to move to {}{}'.format(inner, best_state[1]))
         return best_state[1]
 
-    def board_validation(self):
+    def board_validation(self, piece):
         """Checks to see if the current configuration is terminal.
 
-        This function checks the state of the condition attribute and validates it. Since condition is represented by an InnerBoard object, the validate function may be utilized.
+        This function checks the state of the condition attribute and validates 
+        it. Since condition is represented by an InnerBoard object, the 
+        validate function may be utilized.
 
         Return:
             True if the board is in a terminal state, otherwise false.
         """
-        return self.condition.validate()
+        index = 0
+        for row in self.board:
+            for inner in row:
+                if (inner.winner == None) and inner.validate():
+                    print('Congratulations! {} has won inner board #{}'.format(piece, index))
+                    x, y = self.calculate_pos(index)
+                    self.condition.state[x][y] = piece
+                index += 1
+        if self.condition.validate():
+            self.winner = piece
 
     def print_state(self, state=board):
         """Prints the current game state to the console.
@@ -329,20 +349,27 @@ class TictacPlayer:
             ValueError: A ValueError was thrown as the input is invalid.
         """
         move = input("Please enter your move: ")
+        for row in self.board:
+            for inner in row:
+                if inner.innerID == targetInner and inner.winner != None:
+                    targetInner = -1
         try:
             ret = [int(move[0]), int(move[1])]
             if ret[0] != targetInner and targetInner != -1:
-                print('That is not the correct inner board! Try again.')
+                print('That is not the correct inner board! Try {}.'.format(
+                    targetInner))
                 self.prompt_input(targetInner)
-            x,y = self.calculate_pos(ret[0])
-            row,col=self.calculate_pos(ret[1])
+            x, y = self.calculate_pos(ret[0])
+            row, col = self.calculate_pos(ret[1])
             if self.board[x][y].state[row][col] != '_':
-                print('That space is already occupied! Try again.')
+                print('That space is already occupied with {}! Try again.'.format(
+                    self.board[x][y].state[row][col]), ret)
+                self.print_state()
                 self.prompt_input(targetInner)
             return ret
         except ValueError:
             print(
-                "ERROR: invalid usage. Please enter your input as {int}{int}")
+                "ERROR: invalid usage. Please enter your input as (int)(int) not {}".format((move[0], move[1])))
             self.prompt_input(targetInner)
 
     def op_move(self, targetInner):
@@ -361,7 +388,7 @@ class TictacPlayer:
         space_select = move[1]
         row, col = self.calculate_pos(space_select)
         self.board[x][y].place_marker(self.op_marker, row, col)
-        return targetInner
+        return space_select
 
     def start_game(self):
         """The driver method for the class.
@@ -373,16 +400,21 @@ class TictacPlayer:
         player = random.choice([0, 1])
         inner = -1
         if player == 0:
+            print('The AI goes first!')
             inner = self.first_turn()
             self.first == True
             player = 1
+        else:
+            print('You go first!')
         while self.winner == None:
             if player == 0:
                 inner = self.take_turn(inner, depth)
                 player = 1
+                self.board_validation(self.my_marker)
             elif player == 1:
                 inner = self.op_move(inner)
                 player = 0
+                self.board_validation(self.op_marker)
 
 
 def main():
