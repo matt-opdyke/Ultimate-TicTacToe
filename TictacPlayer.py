@@ -125,6 +125,7 @@ class TictacPlayer:
             pass
         else:
             x, y = self.calculate_pos(targetID)
+            state[x][y].print_inner()
             if not state[x][y].validate():
                 return self.inner_succ(x, y)
 
@@ -133,6 +134,7 @@ class TictacPlayer:
             x, y = self.calculate_pos(index)
             index += 1
             if state[x][y].validate():
+
                 continue
             successors += self.inner_succ(x, y)
 
@@ -166,68 +168,6 @@ class TictacPlayer:
                 index += 1
         return successors
 
-    def max_val(self, state, targetID, beta, depth):
-        """The max value function for the Minimax algorithm.
-
-        The maximum value function of the Minimax algorithm. This function is 
-        used concurrently with the minimum value function to reach the desired 
-        depth of the game tree.
-
-        Args:
-            state: The state used in the current iteration of max_val.
-            targetID: where the next player must move.
-            depth: The desired depth of the game tree.
-
-        Return:
-            The maximum heuristic found within the game tree.
-        """
-
-        # temp variable to hold heuristic for better runtime
-        store = self.heuristic(state)
-
-        if store == float('inf') or depth == 0:
-            return store
-
-        alpha = float('-inf')
-
-        for successor in self.succ(targetID, state):
-            alpha = max(alpha, self.min_val(
-                successor[0], successor[1], beta, depth-1))
-            if alpha >= beta:
-                return beta
-        return alpha
-
-    def min_val(self, state, targetID, alpha, depth):
-        """The min value function for the Minimax algorithm.
-
-        The minimum value function of the Minimax algorithm. This function is 
-        used concurrently with the maximum value function to reach the desired 
-        depth of the game tree.
-
-        Args:
-            state: The state used in the current iteration of min_val.
-            targetID: where the next player must move.
-            depth: The desired depth of the game tree.
-
-        Return:
-            The minimum heuristic found within the game tree.
-        """
-        store = self.heuristic(state)
-
-        # if the state is terminal or max depth is reached, return the
-        # heuristic of the current state
-        if store == float('inf') or depth == 0:
-            return store
-
-        # initialize beta to infinity
-        beta = float('inf')
-
-        for successor in self.succ(targetID, state):
-            beta = min(beta, self.max_val(
-                successor[0], successor[1], alpha, depth-1))
-            if alpha >= beta:
-                return alpha
-        return beta
 
     def first_turn(self):
         """ Helper function for take_turn to randomly select the first turn.
@@ -261,44 +201,32 @@ class TictacPlayer:
             for y in range(3):
                 self.board[x][y].set_state(new[x][y].state)
 
-    def take_turn(self, inner, depth):
+    def take_turn(self, inner):
         """Executes the AI's next calculated move.
 
         In order to take its turn, the AI player will use this function to 
-        connect the minimax algorithm and determine which move is the best 
-        option based on the heuristic.
+        compare game theoretic values for each state using its heuristic and determine which move is optimal.
 
         Args:
             inner: The specified InnerBoard where the AI player must move.
-            depth: The given depth for the game tree calculations.
 
         Return:
-            0: The first turn condition.
-            1: Otherwise.
+            The InnerBoard to which the human player must move.
         """
-        if self.first == True:
-            self.first = False
-            self.first_turn()
-            return 0
-
-        best_heur = float('-inf')
-
+        top = -1
         best_state = None
+        print('Assessing possible moves...')
 
         for state in self.succ(inner, self.board):
-            print('Assessing move...')
-            if self.board_validation(self.my_marker):
+            temp = self.heuristic(state[0])
+            if temp > top:
+                top = temp
                 best_state = state
-                break
 
-            current_value = self.min_val(state[0], inner, 0, depth)
-
-            if current_value > best_heur:
-                best_heur = current_value
-                best_state = state
-        self.update(best_state[0])
         print('I have decided to move to {}{}'.format(inner, best_state[1]))
+        self.update(best_state[0])
         return best_state[1]
+
 
     def board_validation(self, piece):
         """Checks to see if the current configuration is terminal.
@@ -406,7 +334,6 @@ class TictacPlayer:
         The application will begin by randomly selecting which player goes
         first, and alternating turns from then onward.
         """
-        depth = 3
         player = random.choice([0, 1])
         inner = -1
         if player == 0:
@@ -418,7 +345,7 @@ class TictacPlayer:
             print('You go first!')
         while self.winner == None:
             if player == 0:
-                inner = self.take_turn(inner, depth)
+                inner = self.take_turn(inner)
                 player = 1
                 self.board_validation(self.my_marker)
             elif player == 1:
