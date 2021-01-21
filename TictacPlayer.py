@@ -8,7 +8,7 @@ class TictacPlayer:
     """This class implements the AI player for the Ultimate Tic-Tac-Toe game.
 
     Within this class, the Artificial Intelligence player for the game is
-    created. This player utilizes a Minimax Algorithm to assess which move is
+    created. This player utilizes a simple heuristic to assess which move is
     most appropriate for execution.
 
     Attributes:
@@ -27,12 +27,14 @@ class TictacPlayer:
         Creates the TictacPlayer object with either 'X' or 'O' randomly and
         shapes the board into a 3x3 numpy array of InnerBoard objects.
         """
+        # Setting the human and AI players pieces
         self.my_marker = random.choice(self.markers)
         if self.my_marker == self.markers[1]:
             self.op_marker = self.markers[0]
         else:
             self.op_marker = self.markers[1]
 
+        # Create a 3x3 board of InnerBoard objects
         i = 0
         while i < 9:
             self.board.append(InnerBoard(i))
@@ -44,8 +46,6 @@ class TictacPlayer:
         self.condition = InnerBoard(-1)
 
         self.winner = None
-
-        self.first = False
 
     def condition_heuristic(self):
         """ Calculates the heuristic of the conditional board.
@@ -64,8 +64,7 @@ class TictacPlayer:
 
         This function will calculate the game heuristic value of the current 
         state that will later be used in determining the ideal move for the AI
-        player. This calculation will be used within the Minimax algorithm when
-        assessing states.
+        player. This calculation will be used when assessing states.
 
         Args:
             state: The state to which the heuristic is calculated.
@@ -80,6 +79,7 @@ class TictacPlayer:
             for inner in row:
                 score += inner.inner_heuristic(self.my_marker, self.op_marker)
 
+        # Weight the condition's value twice as much as InnerBoards
         score += self.condition_heuristic() * 2
 
         return score
@@ -103,9 +103,9 @@ class TictacPlayer:
     def succ(self, targetID, state=board):
         """A function used to find all successor states of the current state.
 
-        This function will be used by the Minimax Algorithm to calculate
-        possible moves and assess them to select the best possible move.
-        Assessment will be conducted by the heuristic function.
+        This function will be used to calculate possible moves and assess them 
+        to select the best possible move. Assessment will be conducted by the 
+        heuristic function.
 
         Args:
             state: The current state to which we are calculating successors
@@ -125,7 +125,6 @@ class TictacPlayer:
             pass
         else:
             x, y = self.calculate_pos(targetID)
-            state[x][y].print_inner()
             if not state[x][y].validate():
                 return self.inner_succ(x, y)
 
@@ -173,17 +172,16 @@ class TictacPlayer:
         """ Helper function for take_turn to randomly select the first turn.
 
         This function will randomly select a first move for the AI player. 
-        Since there is no need to run the minimax algorithm over every single 
-        space in the board, a random move will suffice.
 
         Return:
             The innerboard index that the human player must move to.
         """
-        self.first = False
         inner = random.choice(range(9))
         space = random.choice(range(9))
+
         x, y = self.calculate_pos(inner)
         row, col = self.calculate_pos(space)
+
         self.board[x][y].place_marker(self.my_marker, row, col)
         print('I have decided to move to {}{}'.format(inner, space))
         return space
@@ -217,6 +215,7 @@ class TictacPlayer:
         best_state = None
         print('Assessing possible moves...')
 
+        # Iterate over successors to find the best heuristic
         for state in self.succ(inner, self.board):
             temp = self.heuristic(state[0])
             if temp > top:
@@ -264,6 +263,7 @@ class TictacPlayer:
         for row in state:
             top, mid, bot = [], [], []
             for inner in row:
+                # Format the output for printing to command line
                 inner = inner.print_inner(verbose=False)
                 top.append(list(inner[0]))
                 mid.append(list(inner[1]))
@@ -287,25 +287,38 @@ class TictacPlayer:
             ValueError: A ValueError was thrown as the input is invalid.
         """
         move = input("Please enter your move: ")
+
+        # Assure that there is no winner at the targetID
         for row in self.board:
             for inner in row:
                 if inner.innerID == targetInner and inner.winner != None:
                     targetInner = -1
         try:
+            # Parse input into a two integer list and validate the input
             ret = [int(move[0]), int(move[1])]
+
+            # Incorrect InnerBoard case
             if ret[0] != targetInner and targetInner != -1:
                 print('That is not the correct inner board! Try {}.'.format(
                     targetInner))
                 return self.prompt_input(targetInner)
+            
+
+            # Occupied space case
             x, y = self.calculate_pos(ret[0])
             row, col = self.calculate_pos(ret[1])
+
             if self.board[x][y].state[row][col] != '_':
                 print('That space is already occupied with {}! Try again.'.format(
                     self.board[x][y].state[row][col]), ret)
                 self.print_state()
                 return self.prompt_input(targetInner)
+
+            # Valid input case
             return ret
         except ValueError:
+
+            # Invalid format case
             print(
                 "ERROR: invalid usage. Please enter your input as (int)(int) not {}".format((move[0], move[1])))
             return self.prompt_input(targetInner)
@@ -321,10 +334,16 @@ class TictacPlayer:
         """
         self.print_state()
         move = self.prompt_input(targetInner)
+
+        # The specified targetInner
         inner_select = move[0]
         x, y = self.calculate_pos(inner_select)
+
+        # The specified space within that InnerBoard
         space_select = move[1]
         row, col = self.calculate_pos(space_select)
+
+        # Place the piece into the current game board
         self.board[x][y].place_marker(self.op_marker, row, col)
         return space_select
 
@@ -336,13 +355,16 @@ class TictacPlayer:
         """
         player = random.choice([0, 1])
         inner = -1
+
+        # Print which palayer will move first
         if player == 0:
             print('The AI goes first!')
             inner = self.first_turn()
-            self.first == True
             player = 1
         else:
             print('You go first!')
+        
+        # Facilitates alternating turns between human and AI players
         while self.winner == None:
             if player == 0:
                 inner = self.take_turn(inner)
@@ -355,6 +377,12 @@ class TictacPlayer:
 
 
 def main():
+    """The main method for running the program.
+
+    This method facilitates creating the TictacPlayer object and starting the 
+    game.
+    """
+
     ttp = TictacPlayer()
     ttp.start_game()
 

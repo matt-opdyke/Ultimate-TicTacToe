@@ -55,7 +55,10 @@ class InnerBoard():
         print(self.state)
 
     def set_state(self, state):
-        """ USED FOR TESTING PURPOSES"""
+        """Used to set the state for this InnerBoard object.
+        
+        This function serves to update the InnerBoard's state when necessary.
+        """
         self.state = state
 
     def inner_heuristic(self, my_mark, op_mark):
@@ -69,12 +72,12 @@ class InnerBoard():
         Return:
             The heuristic of this InnerBoard.
         """
-        # TODO implement heuristic func for InnerBoard
 
         score = 0
 
-        # vertical condition
+        # Vertical condition
         i = 0
+        # Transpose the board so that it may be handled in a simpler manner
         vert_flip = np.transpose(self.state)
         while i < 3:
             unique, counts = np.unique(vert_flip[i], return_counts=True)
@@ -88,7 +91,7 @@ class InnerBoard():
                     score += 1000
             i += 1
 
-        # horizontal condition
+        # Horizontal condition
         i = 0
         while i < 3:
             unique, counts = np.unique(self.state[i], return_counts=True)
@@ -102,7 +105,7 @@ class InnerBoard():
                     score += 1000
             i += 1
 
-        # diagonal (TL to BR) condition
+        # Diagonal (TL to BR) condition
         tlbr = [self.state[0][0], self.state[1][1], self.state[2][2]]
         unique, counts = np.unique(tlbr, return_counts=True)
         count = dict(zip(unique, counts))
@@ -114,7 +117,7 @@ class InnerBoard():
             elif count[my_mark] == 3:
                 score += 1000
 
-        # diagonal (TR to BL) condition
+        # Diagonal (TR to BL) condition
         trbl = [self.state[0][2], self.state[1][1], self.state[2][0]]
         unique, counts = np.unique(trbl, return_counts=True)
         count = dict(zip(unique, counts))
@@ -144,7 +147,7 @@ class InnerBoard():
             all 9 spaces are occupied by a marker) and there is no winning 
             line, then the winner attribute is set to 'T' for tie.
         """
-        # vertical condition
+        # Vertical condition
         i = 0
         while i < 3:
             if self.state[0][i] == self.state[1][i] == self.state[2][i] and str(self.state[0][i]) != '_':
@@ -152,7 +155,7 @@ class InnerBoard():
                 return True
             i += 1
 
-        # horizontal condition
+        # Horizontal condition
         i = 0
         while i < 3:
             if self.state[i][0] == self.state[i][1] == self.state[i][2] and str(self.state[i][0]) != '_':
@@ -160,12 +163,12 @@ class InnerBoard():
                 return True
             i += 1
 
-        # diagonal (TL to BR) condition
+        # Diagonal (TL to BR) condition
         if self.state[0][0] == self.state[1][1] == self.state[2][2] and str(self.state[0][0]) != '_':
             self.winner = self.state[0][0]
             return True
 
-        # diagonal (TR to BL) condition
+        # Diagonal (TR to BL) condition
         if self.state[0][2] == self.state[1][1] == self.state[2][0] and str(self.state[0][2]) != '_':
             self.winner = self.state[0][2]
             return True
